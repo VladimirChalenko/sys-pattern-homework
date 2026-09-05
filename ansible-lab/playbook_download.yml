@@ -1,0 +1,39 @@
+- name: Download and extract archive
+  hosts: all
+  become: yes
+  vars:
+    download_url: "https://archive.apache.org/dist/kafka/3.5.0/kafka_2.13-3.5.0.tgz"
+    install_dir: "/opt/kafka"
+    temp_dir: "/tmp"
+
+  tasks:
+    - name: Create installation directory
+      ansible.builtin.file:
+        path: "{{ install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Download Kafka archive
+      ansible.builtin.get_url:
+        url: "{{ download_url }}"
+        dest: "{{ temp_dir }}/kafka.tgz"
+        mode: '0644'
+
+    - name: Extract archive
+      ansible.builtin.unarchive:
+        src: "{{ temp_dir }}/kafka.tgz"
+        dest: "{{ install_dir }}"
+        remote_src: yes
+        extra_opts: ['--strip-components=1']
+
+    - name: Set permissions
+      ansible.builtin.file:
+        path: "{{ install_dir }}"
+        state: directory
+        mode: '0755'
+        recurse: yes
+
+    - name: Remove temporary archive
+      ansible.builtin.file:
+        path: "{{ temp_dir }}/kafka.tgz"
+        state: absent

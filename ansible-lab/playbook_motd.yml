@@ -1,0 +1,12 @@
+- name: Change Message of the Day
+  hosts: all
+  become: yes
+  vars:
+    motd_content: "Welcome to my Ansible-managed Debian server!\n"
+
+  tasks:
+    - name: Set MOTD content
+      ansible.builtin.copy:
+        dest: /etc/motd
+        content: "{{ motd_content }}"
+        mode: '0644'

@@ -1,0 +1,20 @@
+- name: Install and configure tuned
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Update apt cache (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install tuned package
+      ansible.builtin.package:
+        name: tuned
+        state: present
+
+    - name: Start and enable tuned service
+      ansible.builtin.systemd:
+        name: tuned
+        state: started
+        enabled: yes
