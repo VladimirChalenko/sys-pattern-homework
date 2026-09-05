@@ -1,0 +1,39 @@
+- name: Install Apache2 package
+  ansible.builtin.apt:
+    name: apache2
+    state: present
+    update_cache: yes
+
+- name: Copy Apache virtual host configuration from template
+  ansible.builtin.template:
+    src: 000-default.conf.j2
+    dest: /etc/apache2/sites-available/000-default.conf
+    mode: '0644'
+  notify: restart apache
+
+- name: Copy index.html from template
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    mode: '0644'
+
+- name: Ensure Apache service is started and enabled
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: yes
+
+- name: Allow port 80 via UFW (if UFW is active)
+  ansible.builtin.ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
+  when: ansible_facts.ufw.active | default(False)
+
+- name: Check if website returns HTTP 200
+  ansible.builtin.uri:
+    url: "http://{{ ansible_default_ipv4.address }}"
+    status_code: 200
+  register: result
+  ignore_errors: yes
+  failed_when: result.status != 200

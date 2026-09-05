@@ -1,12 +1,20 @@
-- name: Change Message of the Day
+- name: Change Message of the Day with dynamic info
   hosts: all
   become: yes
   vars:
-    motd_content: "Welcome to my Ansible-managed Debian server!\n"
+    # Можно задать дополнительное пожелание
+    greeting: "Have a nice day, sysadmin!"
 
   tasks:
-    - name: Set MOTD content
+    - name: Compose MOTD content using facts
+      ansible.builtin.set_fact:
+        motd_content: |
+          Hostname: {{ ansible_hostname }}
+          IP Address: {{ ansible_default_ipv4.address }}
+          {{ greeting }}
+
+    - name: Set MOTD file
       ansible.builtin.copy:
         dest: /etc/motd
-        content: "{{ motd_content }}"
+        content: "{{ motd_content }}\n"
         mode: '0644'
